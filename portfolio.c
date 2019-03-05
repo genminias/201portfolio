@@ -26,87 +26,84 @@ struct movie **loadDataset(int *movLength) {
         return NULL;
     }
 
-    //allocate memory for 100 char *
+    //allocate memory for 100 movie *
     const int stepSize = 100;
     int arrLen = stepSize;
-    struct movie **movies = malloc(arrLen * sizeof(char *));
-
-    //read whole lines into buffer array then use strtok() to parse into separate variables
-    char buf[1000];
-    int i = 0;
-    while (fgets(buf, 1000, basics)) {
-
-        //TEST LOOP FOR 10 STRUCTS (TAKE OUT)
-        for (int a = 0; a < 10; a++) {
-
-            //reallocate space in chuncks of 100 char *
-            if (i == arrLen) {
-                arrLen += stepSize;
-                struct movie **newSpace = realloc(movies, arrLen * sizeof(char *));
-                if (!newSpace) {
-                    printf("Error: could not reallocate memory while reading in dataset");
-                    return NULL;
-                }
-                movies = newSpace;
-            }
-
-            buf[strlen(buf)-1] = '\0'; //trims off newline char
-
-            char *token = strtok(buf, "/t"); //tconst
-            int tlen1 = strlen(token);
-            char *temp1 = token;
-
-            token = strtok(NULL, "/t"); //titleType
-            int tlen = strlen(token);
-            char *temp2 = "movie";
-
-            //if movie, allocate space for struct variables and continue to parse string
-            if (strcmp(temp2, token) == 0) {
-                struct movie *newMovie = malloc(sizeof(movie)); //allocate space for struct
-                newMovie->tconst = malloc((tlen1 + 1) * sizeof(char)); //allocate space for tconst
-                strcpy(newMovie->tconst, temp1);
-                newMovie->titleType = malloc((tlen + 1) * sizeof(char)); //allocate space for titleType
-                strcpy(newMovie->titleType, token);
-
-                token = strtok(NULL, "/t"); //primaryTitle
-                tlen = strlen(token);
-                newMovie->primaryTitle = malloc((tlen + 1) * sizeof(char));
-                strcpy(newMovie->primaryTitle, token);
-
-                token = strtok(NULL, "/t"); //originalTitle
-                tlen = strlen(token);
-                newMovie->originalTitle = malloc((tlen + 1) * sizeof(char));
-                strcpy(newMovie->originalTitle, token);
-
-                token = strtok(NULL, "/t"); //isAdult
-                tlen = strlen(token);
-                newMovie->isAdult = malloc((tlen + 1) * sizeof(char));
-                strcpy(newMovie->isAdult, token);
-
-                token = strtok(NULL, "/t"); //startYear
-                tlen = strlen(token);
-                newMovie->startYear = malloc((tlen + 1) * sizeof(char));
-                strcpy(newMovie->startYear, token);
-
-                token = strtok(NULL, "/t"); //skips endYear
-
-                token = strtok(NULL, "/t"); //runtimeMinutes
-                tlen = strlen(token);
-                newMovie->runtimeMinutes = malloc((tlen + 1) * sizeof(char));
-                strcpy(newMovie->runtimeMinutes, token);
-
-                token = strtok(NULL, "/t"); //genres
-                tlen = strlen(token);
-                newMovie->genres = malloc((tlen + 1) * sizeof(char));
-                strcpy(newMovie->genres, token);
-
-                movies[i++] = newMovie;
-            }
-        }
+    struct movie **movies = malloc(arrLen * sizeof(movie *));
+    if (movies == NULL) {
+        printf("Error: space not allocated for array of char *");
+        return NULL;
     }
 
-    movLength = &i;
-    fclose(basics); //do I need to free any memory? prob not
+    //read whole lines into buffer arrays
+    int i = 0;
+    char *tconstBuf = malloc(15 * sizeof(char));
+    char *titleTypeBuf = malloc(20 * sizeof(char));
+    char *primaryTitleBuf = malloc(200 * sizeof(char));
+    char *originalTitleBuf = malloc(200 * sizeof(char));
+    char *isAdultBuf = malloc(15 * sizeof(char));
+    char *startYearBuf = malloc(15 * sizeof(char));
+    char *endYearBuf = malloc(15 * sizeof(char));
+    char *runtimeMinutesBuf = malloc(15 * sizeof(char));
+    char *genresBuf = malloc(200 * sizeof(char));
+
+    while (fscanf(basics, "%s %s %[^\t] %[^\t] %s %s %s %s %[^\n]", tconstBuf,
+    titleTypeBuf, primaryTitleBuf, originalTitleBuf, isAdultBuf, startYearBuf, endYearBuf, runtimeMinutesBuf, genresBuf) == 9) {
+
+        //reallocate space in chuncks of 100 movie *
+        if (i == arrLen) {
+            arrLen += stepSize;
+            struct movie **newSpace = realloc(movies, arrLen * sizeof(movie *));
+            if (!newSpace) {
+                printf("Error: could not reallocate memory while reading in dataset");
+                return NULL;
+            }
+            movies = newSpace;
+        }
+
+        //if movie, allocate new struct
+        char *moviesWord = "movie";
+        int length = 0;
+        if (strcmp(moviesWord, titleTypeBuf) == 0) {
+            struct movie *newMovie = malloc(sizeof(movie));
+
+            length = strlen(tconstBuf); //tconst
+            newMovie->tconst = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->tconst, tconstBuf);
+
+            length = strlen(titleTypeBuf); //titleType
+            newMovie->titleType = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->titleType, titleTypeBuf);
+
+            length = strlen(primaryTitleBuf); //primaryTitle
+            newMovie->primaryTitle = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->primaryTitle, primaryTitleBuf);
+
+            length = strlen(originalTitleBuf); //originalTitle
+            newMovie->originalTitle = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->originalTitle, originalTitleBuf);
+
+            length = strlen(isAdultBuf); //isAdult
+            newMovie->isAdult = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->isAdult, isAdultBuf);
+
+            length = strlen(startYearBuf); //startYear
+            newMovie->startYear = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->startYear, startYearBuf);
+
+            length = strlen(runtimeMinutesBuf); //runtimeMinutes
+            newMovie->runtimeMinutes = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->runtimeMinutes, runtimeMinutesBuf);
+
+            length = strlen(genresBuf); //genres
+            newMovie->genres = malloc((length + 1) * sizeof(char));
+            strcpy(newMovie->genres, genresBuf);
+
+            movies[i++] = newMovie;
+        }
+    }
+    *movLength = i; //does it need to be i-1 ??
+    fclose(basics);
     return movies;
 }
 
@@ -132,11 +129,10 @@ int main(int argc, char *argv[]) {
     if (movArr == NULL) {
         return -1;
     }
-
     printf("%d", movLength);
 
     //start UI
-    /*char catalogName[20];
+    char catalogName[20];
     printf("Welcome to your movie catalog!\n");
     printf("What would you like to name your first catalog? (must be 15 characters or less): ");
     scanf("%s", catalogName);
@@ -144,7 +140,7 @@ int main(int argc, char *argv[]) {
         printf("Error: catalog name must be 15 characters or less, please try again\n");
         return -2;
     }
-    strcat(catalogName, ".txt");*/
+    strcat(catalogName, ".txt");
 
     //FILE *logFile = fopen(catalogName, "w");
 
