@@ -2,3 +2,25 @@
 #include <string.h>
 #include <stdlib.h>
 //#include <ctype.h>
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+#ifndef MOVIE_STRUCT
+#define MOVIE_STRUCT
+typedef struct movie {
+    char *tconst;
+    char *titleType;
+    char *primaryTitle;
+    char *originalTitle;
+    char *isAdult;
+    char *startYear; //can be /N
+    char *runtimeMinutes; //can be /N
+    char *genres; //can be /N
+} movie;
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+struct movie **loadDataset(int *movLength);
+
+///////////////////////////////////////////////////////////////////////////////////////////
