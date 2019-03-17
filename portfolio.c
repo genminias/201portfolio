@@ -5,44 +5,87 @@
 #include "classes.h"
 
 int main(int argc, char *argv[]) {
-    printf("Loading in dataset, please wait a moment...\n");
+    printf("Loading in dataset, please wait a moment...\n\n");
 
-    //gets # of lines in dataset
-    /*FILE *dataset = fopen("title.basics.tsv", "r");
-    if (!dataset) {
-        printf("Error: dataset could not be opened for reading");
-        return -2;
-    }
-    char buf[1000];
-    int count = 0;
-    while(fgets(buf, 1000, dataset) != NULL) {
-        count++;
-    }
-    fclose(dataset);
-    printf("%d\n", count);*/
-
-    //READ DATASET HERE
+    //read dataset
     int movLength = 0;
     movie **movArr = loadDataset(&movLength);
     if (movArr == NULL) {
         return -1;
     }
-    printf("%d\n", movLength); //take this out
 
-    //start UI
-    char catalogName[20];
+    //create first catalog
+    catalogs *newCatalog = malloc(sizeof(catalogs));
+    catalogList *list = malloc(sizeof(catalogList));
+
+    char temp[500];
     printf("Welcome to your movie catalog!\n");
-    printf("What would you like to name your first catalog? (must be 15 characters or less): ");
-    scanf("%s", catalogName);
-    if (strlen(catalogName) > 15) { //maybe make this separate function so it doesn't exit the whole program?
-        printf("Error: catalog name must be 15 characters or less, please try again\n");
-        return -2;
+    printf("What would you like to name your first catalog?: ");
+    scanf("%s", temp);
+    strcat(temp, ".txt");
+    int tempLen = strlen(temp);
+    newCatalog->catalogName = malloc((tempLen + 1) * sizeof(char));
+    strcpy(newCatalog->catalogName, temp);
+    newCatalog->next = NULL;
+    list->head = newCatalog;
+    printf("\nCatalog created!\n");
+
+    //FILE *logFile = fopen(newCatalog->catalogName, "w");
+
+    //MAIN MENU HERE (make a print main menu function)
+    int menuItem = 0;
+    printf("What would you like to do next?\n\n");
+    printf("1 - create new catalog\n");
+    printf("2 - open an existing catalog\n");
+    printf("3 - quit program\n\n");
+    printf("Type the corresponding number: ");
+    scanf(" %d", &menuItem);
+    if ((menuItem <= 0) || (menuItem >= 4)) {
+        printf("Error: Must choose menu options 1, 2, or 3. Please try again.\n");
+        return -3; //make it jump back to menu ?
     }
-    strcat(catalogName, ".txt");
 
-    //FILE *logFile = fopen(catalogName, "w");
-
-    //MENU HERE (printMenu function?)
+    if (menuItem == 1) { //create new catalog
+        printf("\n\nWhat would you like to name this catalog?: ");
+        scanf("%s", temp);
+        strcat(temp, ".txt");
+        catalogs *ptr = list->head;
+        while (ptr) {
+            if (strcmp(ptr->catalogName, temp) == 0) {
+                printf("Error: Catalog already exists. Would you like to overwrite it?\n");
+                //if yes, overwright
+                //if no, print main menu function
+                return -4; //take this out
+            }
+            else {
+                ptr = ptr->next;
+            }
+        }
+        catalogs *anotherCatalog = malloc(sizeof(catalogs));
+        tempLen = strlen(temp);
+        anotherCatalog->catalogName = malloc((tempLen + 1) * sizeof(char));
+        strcpy(anotherCatalog->catalogName, temp);
+        anotherCatalog->next = list->head;
+        list->head = anotherCatalog;
+        //print menu for catalog functions
+    }
+    if (menuItem == 2) { //open existing catalog
+        printf("\n\nWhich catalog would you like to edit?\n");
+        catalogs *ptr = list->head;
+        while (ptr) {
+            printf("%s\n", ptr->catalogName);
+            ptr = ptr->next;
+        }
+        printf("\nType one of the catalogs as it is shown above: ");
+        scanf("%s", temp);
+        //error if unknown catalog
+        //openfile, or send filename to another fucntion
+        //print menu for catalog functions
+    }
+    if (menuItem == 3) { //quit program
+        printf("\nGoodbye! Your catalog(s) will be saved for future reference\n");
+        return 0;
+    }
 
     return 0;
 }
