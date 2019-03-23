@@ -7,7 +7,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //function that loads data into an array of structs
-struct movie **loadDataset(int *movLength) {
+struct movie *loadDataset(int *movLength) {
 
     //open file
     FILE *basics = fopen("title.basics.tsv", "r");
@@ -16,14 +16,7 @@ struct movie **loadDataset(int *movLength) {
         return NULL;
     }
 
-    //allocate memory for 100 movie *
-    const int stepSize = 100;
-    int arrLen = stepSize;
-    struct movie **movies = malloc(arrLen * sizeof(movie *));
-    if (movies == NULL) {
-        printf("Error: space not allocated for array of char *");
-        return NULL;
-    }
+    struct movie *root = NULL; //root node
 
     //read whole lines into buffer arrays
     int i = 0;
@@ -40,22 +33,15 @@ struct movie **loadDataset(int *movLength) {
     while (fscanf(basics, "%s %s %[^\t] %[^\t] %s %s %s %s %[^\n]", tconstBuf,
     titleTypeBuf, primaryTitleBuf, originalTitleBuf, isAdultBuf, startYearBuf, endYearBuf, runtimeMinutesBuf, genresBuf) == 9) {
 
-        //reallocate space in chuncks of 100 movie *
-        if (i == arrLen) {
-            arrLen += stepSize;
-            struct movie **newSpace = realloc(movies, arrLen * sizeof(movie *));
-            if (!newSpace) {
-                printf("Error: could not reallocate memory while reading in dataset");
-                return NULL;
-            }
-            movies = newSpace;
-        }
-
-        //if movie, allocate new struct
+        //if movie, allocate new movie node
         char *moviesWord = "movie";
         int length = 0;
         if (strcmp(moviesWord, titleTypeBuf) == 0) {
             struct movie *newMovie = malloc(sizeof(movie));
+            if (newMovie == NULL) {
+                printf("Error: cannot make new movie node\n");
+                return NULL;
+            }
 
             length = strlen(tconstBuf); //tconst
             newMovie->tconst = malloc((length + 1) * sizeof(char));
@@ -89,10 +75,22 @@ struct movie **loadDataset(int *movLength) {
             newMovie->genres = malloc((length + 1) * sizeof(char));
             strcpy(newMovie->genres, genresBuf);
 
-            movies[i++] = newMovie;
+            newMovie->left = NULL; //tree pointers
+            newMovie->right = NULL;
+            newMovie->listNext = NULL;
+
+            i++; //node counter
+
+            //insert node into tree
+            if (root == NULL) {
+                root = newMovie;
+            }
+            else {
+                insert(root, newMovie);
+            }
         }
     }
-    *movLength = i - 1; //does it need to be just i ??
+    *movLength = i - 1;
     fclose(basics);
     free(tconstBuf);
     free(titleTypeBuf);
@@ -102,7 +100,37 @@ struct movie **loadDataset(int *movLength) {
     free(startYearBuf);
     free(runtimeMinutesBuf);
     free(genresBuf);
-    return movies;
+    return root;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+//insert movie node into binary search tree, sorted by primaryTitle
+void insert(movie *root, movie *newMovie) {
+    if (strcmp(newMovie->primaryTitle, root->primaryTitle) < 0) {
+        if (root->left != NULL) { //traverse left tree
+            insert(root->left, newMovie);
+        }
+        else {
+            root->left = newMovie;
+        }
+    }
+    else if (strcmp(newMovie->primaryTitle, root->primaryTitle) > 0) {
+        if (root->right != NULL) { //traverse right tree
+            insert(root->right, newMovie);
+        }
+        else {
+            root->right = newMovie;
+        }
+    }
+    else { //duplicate values linked list
+        struct movie *head = root;
+        while (head->listNext != NULL) {
+            head = head->listNext;
+        }
+        head->listNext = newMovie;
+    }
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

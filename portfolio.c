@@ -9,12 +9,13 @@ int main(int argc, char *argv[]) {
 
     //read dataset
     int movLength = 0;
-    movie **movArr = loadDataset(&movLength);
-    if (movArr == NULL) {
+    struct movie *root = loadDataset(&movLength);
+    if (root == NULL) {
         return -1;
     }
 
-    //create first catalog
+    //create first catalog (FIX!!!!!!! should store filenames in another file, not in linked list ? also, possibly
+    //take out creating a new catalog at startup)
     catalogs *newCatalog = malloc(sizeof(catalogs));
     catalogList *list = malloc(sizeof(catalogList));
 
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
     scanf(" %d", &menuItem);
     if ((menuItem <= 0) || (menuItem >= 4)) {
         printf("Error: Must choose menu options 1, 2, or 3. Please try again.\n");
-        return -3; //make it jump back to menu ?
+        return -3; //make it jump back to menu, try using a while loop
     }
 
     if (menuItem == 1) { //create new catalog
@@ -52,8 +53,8 @@ int main(int argc, char *argv[]) {
         catalogs *ptr = list->head;
         while (ptr) {
             if (strcmp(ptr->catalogName, temp) == 0) {
-                printf("Error: Catalog already exists. Would you like to overwrite it?\n");
-                //if yes, overwright
+                printf("Error: Catalog already exists. Would you like to overwrite it? (1-yes, 2-no): ");
+                //if yes, overwright (apparently can just open file to write using "w")
                 //if no, print main menu function
                 return -4; //take this out
             }
@@ -70,7 +71,7 @@ int main(int argc, char *argv[]) {
         //print menu for catalog functions
     }
     if (menuItem == 2) { //open existing catalog
-        printf("\n\nWhich catalog would you like to edit?\n");
+        printf("\n\nWhich catalog would you like to open?\n");
         catalogs *ptr = list->head;
         while (ptr) {
             printf("%s\n", ptr->catalogName);
@@ -79,11 +80,12 @@ int main(int argc, char *argv[]) {
         printf("\nType one of the catalogs as it is shown above: ");
         scanf("%s", temp);
         //error if unknown catalog
-        //openfile, or send filename to another fucntion
+        //open file, or send filename to another fucntion
         //print menu for catalog functions
     }
     if (menuItem == 3) { //quit program
         printf("\nGoodbye! Your catalog(s) will be saved for future reference\n");
+        //free catalog memory ???
         return 0;
     }
 

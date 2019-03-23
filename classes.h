@@ -5,8 +5,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef MOVIE_STRUCT
-#define MOVIE_STRUCT
+#ifndef MOVIE_NODE
+#define MOVIE_NODE
 typedef struct movie {
     char *tconst;
     char *titleType;
@@ -16,6 +16,9 @@ typedef struct movie {
     char *startYear; //can be /N
     char *runtimeMinutes; //can be /N
     char *genres; //can be /N
+    struct movie *left;
+    struct movie *right;
+    struct movie *listNext;
 } movie;
 #endif
 
@@ -38,6 +41,7 @@ typedef struct catalogList {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-struct movie **loadDataset(int *movLength);
+struct movie *loadDataset(int *movLength);
+void insert(movie *root, movie *newMovie);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
