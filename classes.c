@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//#include <ctype.h>
+#include <ctype.h>
 #include "classes.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//function that loads data into an array of structs
+//function that loads data into a binary search tree (maybe change to AVL tree)
 struct movie *loadDataset(int *movLength) {
 
     //open file
@@ -16,7 +16,8 @@ struct movie *loadDataset(int *movLength) {
         return NULL;
     }
 
-    struct movie *root = NULL; //root node
+    //root node
+    struct movie *root = NULL;
 
     //read whole lines into buffer arrays
     int i = 0;
@@ -131,6 +132,126 @@ void insert(movie *root, movie *newMovie) {
         head->listNext = newMovie;
     }
     return;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//should these be implemented in a class???????????
+
+//user log
+char *username() {
+    char buf[200];
+    printf("What is your username?: ");
+    scanf("%s", buf);
+    strcat(buf, ".txt");
+    //should I account for case ?
+    int len = strlen(buf);
+    char *user = malloc((len + 1) * sizeof(char));
+    strcpy(user, buf);
+    FILE *userCatalog = fopen(user, "r");
+    if (userCatalog == NULL) {
+        printf("\nThis username does not exist. I'll create it for you!\n");
+        userCatalog = fopen(user, "w");
+        fclose(userCatalog);
+        printf("\nEntering user catalog...\n");
+    }
+    else {
+        printf("\nEntering user catalog...\n");
+    }
+    return user;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+//main menu
+//PUT A HELP COMMAND
+int printMainMenu(int menuItem) {
+    printf("------------------------------------------------------\n");
+    printf("What would you like to do?\n\n");
+    printf("1 - Edit/update catalog (add, delete, list)\n");
+    printf("2 - Overwrite catalog (clean slate)\n");
+    printf("3 - Delete catalog\n");
+    printf("4 - Change catalogs\n");
+    printf("5 - Quit program\n\n");
+    printf("Type the corresponding number: ");
+    scanf("%d", &menuItem); //test for int ?
+    printf("------------------------------------------------------\n");
+    return menuItem;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+//main menu options
+void mainMenuOptions(int menuItem, char *user) {
+    if (menuItem == 1) { //edit catalog
+        menuItem = printCatalogMenu(menuItem);
+        catalogMenuOptions(menuItem, user);
+        return;
+    }
+    if (menuItem == 2) { //overwrite catalog
+        FILE *catalog = fopen(user, "w");
+        fclose(catalog);
+        printf("Catalog overwritten!\n");
+        //print main menu or catalog menu ?
+        return;
+    }
+    if (menuItem == 3) { //delete catalog
+        int status = remove(user);
+        if (status == 0) {
+            printf("Catalog deleted!\n");
+            printf("You will be prompted to enter a new or existing username\n");
+            printf("------------------------------------------------------\n");
+            user = username();
+            menuItem = printMainMenu(menuItem);
+            while ((menuItem < 1) || (menuItem > 5)) {
+                printf("Error: Must choose menu options 1-5. Please try again.\n");
+                menuItem = printMainMenu(menuItem);
+            }
+            mainMenuOptions(menuItem, user);
+        }
+        return;
+    }
+    if (menuItem == 4) { //change user catalog
+        printf("Going back...\n");
+        printf("------------------------------------------------------\n");
+        user = username();
+        menuItem = printMainMenu(menuItem);
+        while ((menuItem < 1) || (menuItem > 5)) {
+            printf("Error: Must choose menu options 1-5. Please try again.\n");
+            menuItem = printMainMenu(menuItem);
+        }
+        mainMenuOptions(menuItem, user);
+        return;
+    }
+    if (menuItem == 5) { //quit program
+        printf("Goodbye! Your catalog(s) will be saved for future reference\n");
+        printf("------------------------------------------------------\n");
+        return;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+//main menu
+int printCatalogMenu(int menuItem) {
+    printf("------------------------------------------------------\n");
+    printf("What would you like to do now?\n\n");
+    printf("1 - List all movies in the catalog\n");
+    printf("2 - Add movie to the catalog\n");
+    printf("3 - Delete movie from the catalog\n");
+    printf("4 - Go back to main menu\n");
+    printf("5 - Quit program\n\n");
+    //search catalog and print specific movies ?
+    printf("Type the corresponding number: ");
+    scanf("%d", &menuItem); //test for int ?
+    printf("------------------------------------------------------\n");
+    return menuItem;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+//catalog menu options
+void catalogMenuOptions(int menuItem, char *user) {
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
