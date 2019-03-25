@@ -19,6 +19,7 @@ typedef struct movie {
     struct movie *left;
     struct movie *right;
     struct movie *listNext;
+    //char *nonArticleTitle;
 } movie;
 #endif
 
@@ -26,13 +27,15 @@ typedef struct movie {
 
 struct movie *loadDataset(int *movLength);
 void insert(movie *root, movie *newMovie);
+struct movie *searchTree(char *keyword, movie *root);
 
+void addMovieToLog(movie *match, char *user);
+char *matchingTitle();
 char *username();
 
-int printMainMenu(int menuItem);
-void mainMenuOptions(int menuItem, char *user);
-
-int printCatalogMenu(int menuItem);
-void catalogMenuOptions(int menuItem, char *user);
+char *printMainMenu(char *menuItem);
+int mainMenuOptions(char *menuItem, char *user);
+char *printCatalogMenu(char *menuItem);
+int catalogMenuOptions(char *menuItem, char *user);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
