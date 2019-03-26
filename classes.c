@@ -162,7 +162,7 @@ struct movie *searchTree(char *keyword, movie *root) {
     else { //found match
         if (cursor->listNext != NULL) { //if duplicate titles, list all and choose
             int count = 1, choice = 0;
-            char val[50];
+            char val[200];
             struct movie *head = cursor;
             printf("There are multiple movies with this title. Which one would you like to add?\n\n");
             printf("%d - %s (%s)\n", count, head->primaryTitle, head->startYear);
@@ -172,7 +172,7 @@ struct movie *searchTree(char *keyword, movie *root) {
                 printf("%d - %s (%s)\n", count, head->primaryTitle, head->startYear);
             }
             printf("\nType the corresponding number: ");
-            fgets(val, 50, stdin);
+            fgets(val, 200, stdin);
             int size = strlen(val);
             val[size-1] = '\0';
             choice = atoi(val);
@@ -247,13 +247,18 @@ char *matchingTitle() {
 //user log
 char *username() {
     char buf[200];
+    int j = 0;
     printf("What is your username?: ");
     fgets(buf, 200, stdin);
     int size = strlen(buf);
     buf[size-1] = '\0';
     strcat(buf, ".txt");
-    int len = strlen(buf);
-    char *user = malloc((len + 1) * sizeof(char));
+    while (buf[j]) {
+        buf[j] = tolower(buf[j]);
+        j++;
+    }
+    size = strlen(buf);
+    char *user = malloc((size + 1) * sizeof(char));
     strcpy(user, buf);
     FILE *userCatalog = fopen(user, "r");
     if (userCatalog == NULL) {
@@ -280,7 +285,7 @@ char *printMainMenu(char *menuItem) {
     printf("4 - Change users\n");
     printf("5 - Quit program\n\n");
     printf("Type the corresponding number: ");
-    fgets(menuItem, 50, stdin);
+    fgets(menuItem, 200, stdin);
     int size = strlen(menuItem);
     menuItem[size-1] = '\0';
     printf("------------------------------------------------------\n");
@@ -344,7 +349,7 @@ char *printCatalogMenu(char *menuItem) {
     printf("4 - Go back to main menu\n");
     printf("5 - Quit program\n\n");
     printf("Type the corresponding number: ");
-    fgets(menuItem, 50, stdin);
+    fgets(menuItem, 200, stdin);
     int size = strlen(menuItem);
     menuItem[size-1] = '\0';
     printf("------------------------------------------------------\n");
@@ -400,7 +405,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
         fseek(catalog, 0, SEEK_SET);
         printf("Which movie would you like to delete?\n\n");
         int movCounter = 0, lineCounter = 0, countCounter = 0, choice = 0;
-        char val[50];
+        char val[200];
         while (fgets(buf, 1000, catalog) != NULL) {
             if (lineCounter == countCounter) {
                 movCounter++;
@@ -410,7 +415,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
             lineCounter++;
         }
         printf("\nType the corresponding number: ");
-        fgets(val, 50, stdin);
+        fgets(val, 200, stdin);
         printf("------------------------------------------------------\n");
         int size = strlen(val);
         val[size-1] = '\0';

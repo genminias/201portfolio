@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     printf("Welcome to your movie database! :)\n\n");
 
     char *user, *keyword;
-    char *menuItem = malloc(50 * sizeof(char));
+    char *menuItem = malloc(200 * sizeof(char));
 
     //UI start
     int choice = 1;
