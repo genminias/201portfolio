@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
     printf("Welcome to your movie database! :)\n\n");
 
-    char *user, *keyword;
+    char *user, *keyword; //should also free user and keyword ? or change to char[]
     char *menuItem = malloc(200 * sizeof(char));
 
     //UI start
@@ -51,7 +51,8 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    //free memory allocated for binary search tree
-    freeTree(root);
+    //free memory allocated
+    free(menuItem);
+    freeTree(root); //157 things were not freed, why doe ?
     return 0;
 }

@@ -23,7 +23,7 @@ struct movie *loadDataset(int *movLength) {
     //open file
     FILE *basics = fopen("title.basics.tsv", "r");
     if (!basics) {
-        printf("Error: dataset could not be opened for reading");
+        printf("Error: dataset could not be opened for reading.\n");
         return NULL;
     }
 
@@ -53,7 +53,7 @@ struct movie *loadDataset(int *movLength) {
                 printf("Error: cannot make new movie node\n");
                 return NULL;
             }
-
+            
             length = strlen(primaryTitleBuf); //primaryTitle
             newMovie->primaryTitle = malloc((length + 1) * sizeof(char));
             strcpy(newMovie->primaryTitle, primaryTitleBuf);
@@ -93,6 +93,7 @@ struct movie *loadDataset(int *movLength) {
     free(originalTitleBuf);
     free(isAdultBuf);
     free(startYearBuf);
+    free(endYearBuf);
     free(runtimeMinutesBuf);
     free(genresBuf);
     return root;
@@ -200,11 +201,33 @@ void freeTree(movie *root) {
     freeTree(root->left);
     freeTree(root->right);
 
-    free(root->primaryTitle);
-    free(root->startYear);
-    free(root->runtimeMinutes);
-    free(root->genres);
-    free(root);
+    if (root->listNext != NULL) {
+        freeTree(root->listNext);
+        root->listNext = NULL;
+        free(root->primaryTitle);
+        free(root->startYear);
+        free(root->runtimeMinutes);
+        free(root->genres);
+        free (root);
+        /*struct movie *temp;
+        while (root != NULL) {
+            temp = root;
+            root = root->listNext;
+            free(temp->primaryTitle);
+            free(temp->startYear);
+            free(temp->runtimeMinutes);
+            free(temp->genres);
+            free (temp);
+        }*/
+
+    }
+    else {
+        free(root->primaryTitle);
+        free(root->startYear);
+        free(root->runtimeMinutes);
+        free(root->genres);
+        free (root);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
