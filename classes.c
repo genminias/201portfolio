@@ -4,6 +4,17 @@
 #include <ctype.h>
 #include "classes.h"
 
+/*
+SOURCES USED:
+https://www.youtube.com/watch?v=5wzmEKjNqiU - helped with reading in IMDB dataset
+https://www.thecrazyprogrammer.com/2015/03/c-program-for-binary-search-tree-insertion.html - helped with node insertion into binary search tree
+https://www.programiz.com/c-programming/c-file-input-output - helped with file streams
+https://codeforwin.org/2018/02/c-program-remove-word-from-file.html - helped with removing an entry from catalog
+https://www.techonthenet.com/c_language/standard_library_functions/ctype_h/toupper.php - helped with conversion to uppercase
+https://stackoverflow.com/questions/1484817/how-do-i-make-a-simple-makefile-for-gcc-on-linux - helped with creating a makefile
+plus many many more (for smaller syntax things)! thanks stackoverflow :)
+*/
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //function that loads data into a binary search tree
@@ -43,26 +54,9 @@ struct movie *loadDataset(int *movLength) {
                 return NULL;
             }
 
-            //do I even need most of these ????
-            length = strlen(tconstBuf); //tconst
-            newMovie->tconst = malloc((length + 1) * sizeof(char));
-            strcpy(newMovie->tconst, tconstBuf);
-
-            length = strlen(titleTypeBuf); //titleType
-            newMovie->titleType = malloc((length + 1) * sizeof(char));
-            strcpy(newMovie->titleType, titleTypeBuf);
-
             length = strlen(primaryTitleBuf); //primaryTitle
             newMovie->primaryTitle = malloc((length + 1) * sizeof(char));
             strcpy(newMovie->primaryTitle, primaryTitleBuf);
-
-            length = strlen(originalTitleBuf); //originalTitle
-            newMovie->originalTitle = malloc((length + 1) * sizeof(char));
-            strcpy(newMovie->originalTitle, originalTitleBuf);
-
-            length = strlen(isAdultBuf); //isAdult
-            newMovie->isAdult = malloc((length + 1) * sizeof(char));
-            strcpy(newMovie->isAdult, isAdultBuf);
 
             length = strlen(startYearBuf); //startYear
             newMovie->startYear = malloc((length + 1) * sizeof(char));
@@ -198,20 +192,38 @@ struct movie *searchTree(char *keyword, movie *root) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//add movie to catalog
+//free allocated memory for binary search tree
+void freeTree(movie *root) {
+    if (root == NULL) {
+        return;
+    }
+    freeTree(root->left);
+    freeTree(root->right);
+
+    free(root->primaryTitle);
+    free(root->startYear);
+    free(root->runtimeMinutes);
+    free(root->genres);
+    free(root);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+//add movie to catalog file
 void addMovieToLog(movie *match, char *user) {
     FILE *catalog = fopen(user, "a");
     fprintf(catalog, "%s (%s)\n", match->primaryTitle, match->startYear);
     fprintf(catalog, "%s minutes\n", match->runtimeMinutes);
     fprintf(catalog, "%s\n\n", match->genres);
     fclose(catalog);
-    printf("%s has been added to your catalog!\n", match->primaryTitle);
+    printf("%s (%s) has been added to your catalog!\n", match->primaryTitle, match->startYear);
     printf("------------------------------------------------------\n");
     return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+//gets user inputted movie to search database with (case insensitive)
 char *matchingTitle() {
     char keyword[200];
     int j = 0;
@@ -240,7 +252,6 @@ char *username() {
     int size = strlen(buf);
     buf[size-1] = '\0';
     strcat(buf, ".txt");
-    //should I account for case ?
     int len = strlen(buf);
     char *user = malloc((len + 1) * sizeof(char));
     strcpy(user, buf);
@@ -316,7 +327,7 @@ int mainMenuOptions(char *menuItem, char *user) {
         printf("------------------------------------------------------\n");
         return 5;
     }
-    else {
+    else { //user input error
         printf("Error: Must choose menu options 1-5. Please try again.\n");
         return 2;
     }
@@ -360,32 +371,83 @@ int catalogMenuOptions(char *menuItem, char *user) {
             return 3;
         }
         fseek(catalog, 0, SEEK_SET);
-        while (fgets(buf, 1000, catalog) != NULL) { //change since it parses lines into separate words
+        while (fgets(buf, 1000, catalog) != NULL) {
             printf("%s", buf);
         }
         printf("------------------------------------------------------\n");
         fclose(catalog);
         printf("Press the ENTER key to go back.\n");
-        while (1) { //this might fuckin fail
-            fgets(buf, 1000, stdin);
-            if (buf[0] == '\n') {
-                printf("------------------------------------------------------\n");
-                return 3;
-            }
-        }
+        fgets(buf, 1000, stdin);
+        printf("------------------------------------------------------\n");
         return 3;
     }
     else if (strcmp(menuItem, "2") == 0) { //add movie
         return 4;
     }
     else if (strcmp(menuItem, "3") == 0) { //delete movie
-        //open file and open new temp file
-        //account for empty
-        //read in by line and print (save counter number)
-        //prompt to enter counter number
-        //read in file again but print lines to new temp file, except don't print counter number line
-        //delete file and rename new temp file
-        //close file
+        catalog = fopen(user, "r");
+        if (catalog == NULL) {
+            printf("Error: could not open catalog.\n");
+            return 5;
+        }
+        fseek(catalog, 0, SEEK_END);
+        if (ftell(catalog) == 0) {
+            fclose(catalog);
+            printf("Your catalog is empty. You should add some movies to it first!\n");
+            printf("------------------------------------------------------\n");
+            return 3;
+        }
+        fseek(catalog, 0, SEEK_SET);
+        printf("Which movie would you like to delete?\n\n");
+        int movCounter = 0, lineCounter = 0, countCounter = 0, choice = 0;
+        char val[50];
+        while (fgets(buf, 1000, catalog) != NULL) {
+            if (lineCounter == countCounter) {
+                movCounter++;
+                countCounter = countCounter + 4;
+                printf("%d - %s", movCounter, buf);
+            }
+            lineCounter++;
+        }
+        printf("\nType the corresponding number: ");
+        fgets(val, 50, stdin);
+        printf("------------------------------------------------------\n");
+        int size = strlen(val);
+        val[size-1] = '\0';
+        choice = atoi(val);
+        if ((choice < 1) || (choice > movCounter)) {
+            printf("Error: entered invalid number. No movie will be deleted.\n");
+            printf("------------------------------------------------------\n");
+            fclose(catalog);
+            return 3;
+        }
+        fseek(catalog, 0, SEEK_SET);
+        FILE *temp = fopen("temp.txt", "w");
+        choice--;
+        lineCounter = 0;
+        countCounter = choice * 4;
+        char lineStorage[250];
+        while (fgets(buf, 1000, catalog) != NULL) {
+            if ((lineCounter < countCounter) || (lineCounter > (countCounter+3))) {
+                fprintf(temp, "%s", buf);
+            }
+            if (lineCounter == countCounter) {
+                strcpy(lineStorage, buf);
+                int len = strlen(lineStorage);
+                lineStorage[len-1] = '\0';
+            }
+            lineCounter++;
+        }
+        fclose(catalog);
+        fclose(temp);
+        int status = remove(user);
+        if (status != 0) {
+            printf("Error: could not move files.\n");
+            return 5;
+        }
+        rename("temp.txt", user);
+        printf("%s has been deleted from your catalog!\n", lineStorage);
+        printf("------------------------------------------------------\n");
         return 3;
     }
     else if (strcmp(menuItem, "4") == 0) { //go to main menu
@@ -397,7 +459,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
         printf("------------------------------------------------------\n");
         return 5;
     }
-    else {
+    else { //user input error
         printf("Error: Must choose menu options 1-5. Please try again.\n");
         printf("------------------------------------------------------\n");
         return 3;

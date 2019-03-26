@@ -4,12 +4,6 @@
 #include <ctype.h>
 #include "classes.h"
 
-//ADD SOURCES !!!!
-//write function that frees tree ?
-//help command ?
-//make sure this works in Ubuntu
-//write readme file
-//make video
 int main(int argc, char *argv[]) {
     printf("------------------------------------------------------\n");
     printf("Loading in dataset, please wait a moment...\n");
@@ -29,9 +23,9 @@ int main(int argc, char *argv[]) {
 
     //UI start
     int choice = 1;
-    while (choice != 5) { //end or error
+    while (choice != 5) { //end / error
         switch (choice) {
-            case 1: //start, 3rd, and 4th main menu options
+            case 1: //start / 3rd and 4th main menu options
                 user = username();
                 choice = 2;
                 break;
@@ -57,5 +51,7 @@ int main(int argc, char *argv[]) {
         }
     }
     
+    //free memory allocated for binary search tree
+    freeTree(root);
     return 0;
 }
