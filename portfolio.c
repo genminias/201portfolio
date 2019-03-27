@@ -4,6 +4,17 @@
 #include <ctype.h>
 #include "classes.h"
 
+/*
+SOURCES USED:
+https://www.youtube.com/watch?v=5wzmEKjNqiU - helped with reading in IMDB dataset
+https://www.thecrazyprogrammer.com/2015/03/c-program-for-binary-search-tree-insertion.html - helped with node insertion into binary search tree
+https://www.programiz.com/c-programming/c-file-input-output - helped with file streams
+https://codeforwin.org/2018/02/c-program-remove-word-from-file.html - helped with removing an entry from catalog
+https://www.techonthenet.com/c_language/standard_library_functions/ctype_h/toupper.php - helped with conversion to uppercase
+https://stackoverflow.com/questions/1484817/how-do-i-make-a-simple-makefile-for-gcc-on-linux - helped with creating a makefile
+plus many many more (for smaller syntax things)! thanks stackoverflow :)
+*/
+
 int main(int argc, char *argv[]) {
     printf("------------------------------------------------------\n");
     printf("Loading in dataset, please wait a moment...\n");
@@ -18,8 +29,8 @@ int main(int argc, char *argv[]) {
 
     printf("Welcome to your movie database! :)\n\n");
 
-    char *user, *keyword; //should also free user and keyword ? or change to char[]
-    char *menuItem = malloc(200 * sizeof(char));
+    char *user, *keyword;
+    char *menuItem = malloc(50 * sizeof(char));
 
     //UI start
     int choice = 1;
@@ -27,7 +38,12 @@ int main(int argc, char *argv[]) {
         switch (choice) {
             case 1: //start / 3rd and 4th main menu options
                 user = username();
-                choice = 2;
+                if (strcmp(user, "error") == 0) {
+                    choice = 1;
+                }
+                else {
+                    choice = 2;
+                }
                 break;
             case 2: //wrong # main menu / 4th catalog menu option
                 menuItem = printMainMenu(menuItem);
@@ -41,7 +57,6 @@ int main(int argc, char *argv[]) {
                 keyword = matchingTitle();
                 struct movie *match = searchTree(keyword, root);
                 if (match == NULL) {
-                    printf("------------------------------------------------------\n");
                     choice = 3;
                     break;
                 }
@@ -53,6 +68,6 @@ int main(int argc, char *argv[]) {
     
     //free memory allocated
     free(menuItem);
-    freeTree(root); //157 things were not freed, why doe ?
+    freeTree(root);
     return 0;
 }

@@ -4,17 +4,6 @@
 #include <ctype.h>
 #include "classes.h"
 
-/*
-SOURCES USED:
-https://www.youtube.com/watch?v=5wzmEKjNqiU - helped with reading in IMDB dataset
-https://www.thecrazyprogrammer.com/2015/03/c-program-for-binary-search-tree-insertion.html - helped with node insertion into binary search tree
-https://www.programiz.com/c-programming/c-file-input-output - helped with file streams
-https://codeforwin.org/2018/02/c-program-remove-word-from-file.html - helped with removing an entry from catalog
-https://www.techonthenet.com/c_language/standard_library_functions/ctype_h/toupper.php - helped with conversion to uppercase
-https://stackoverflow.com/questions/1484817/how-do-i-make-a-simple-makefile-for-gcc-on-linux - helped with creating a makefile
-plus many many more (for smaller syntax things)! thanks stackoverflow :)
-*/
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //function that loads data into a binary search tree
@@ -23,23 +12,26 @@ struct movie *loadDataset(int *movLength) {
     //open file
     FILE *basics = fopen("title.basics.tsv", "r");
     if (!basics) {
-        printf("Error: dataset could not be opened for reading.\n");
-        return NULL;
+        basics = fopen("data.tsv", "r");
+        if (!basics) {
+            printf("Error: dataset could not be opened for reading.\n");
+            return NULL;
+        }
     }
 
     struct movie *root = NULL; //root node
 
     //read whole lines into buffer arrays
     int i = 0;
-    char *tconstBuf = malloc(15 * sizeof(char));
-    char *titleTypeBuf = malloc(20 * sizeof(char));
-    char *primaryTitleBuf = malloc(200 * sizeof(char));
-    char *originalTitleBuf = malloc(200 * sizeof(char));
+    char *tconstBuf = malloc(20 * sizeof(char));
+    char *titleTypeBuf = malloc(30 * sizeof(char));
+    char *primaryTitleBuf = malloc(500 * sizeof(char));
+    char *originalTitleBuf = malloc(500 * sizeof(char));
     char *isAdultBuf = malloc(15 * sizeof(char));
     char *startYearBuf = malloc(15 * sizeof(char));
     char *endYearBuf = malloc(15 * sizeof(char));
     char *runtimeMinutesBuf = malloc(15 * sizeof(char));
-    char *genresBuf = malloc(200 * sizeof(char));
+    char *genresBuf = malloc(300 * sizeof(char));
 
     while (fscanf(basics, "%s %s %[^\t] %[^\t] %s %s %s %s %[^\n]", tconstBuf,
     titleTypeBuf, primaryTitleBuf, originalTitleBuf, isAdultBuf, startYearBuf, endYearBuf, runtimeMinutesBuf, genresBuf) == 9) {
@@ -85,6 +77,7 @@ struct movie *loadDataset(int *movLength) {
             }
         }
     }
+
     *movLength = i - 1;
     fclose(basics);
     free(tconstBuf);
@@ -135,7 +128,7 @@ void insert(movie *root, movie *newMovie) {
 //search tree for given movie
 struct movie *searchTree(char *keyword, movie *root) {
     struct movie *cursor = root;
-    char caseTitle[200]; //make traversal case insensitive
+    char caseTitle[500]; //make traversal case insensitive
     int j = 0;
     strcpy(caseTitle, cursor->primaryTitle);
     while (caseTitle[j]) {
@@ -148,6 +141,7 @@ struct movie *searchTree(char *keyword, movie *root) {
         }
         else {
             printf("Sorry! This movie does not exist. Try searching again.\n");
+            printf("------------------------------------------------------\n");
             return NULL;
         }
     }
@@ -157,13 +151,14 @@ struct movie *searchTree(char *keyword, movie *root) {
         }
         else {
             printf("Sorry! This movie does not exist. Try searching again.\n");
+            printf("------------------------------------------------------\n");
             return NULL;
         }
     }
     else { //found match
         if (cursor->listNext != NULL) { //if duplicate titles, list all and choose
             int count = 1, choice = 0;
-            char val[200];
+            char val[50];
             struct movie *head = cursor;
             printf("There are multiple movies with this title. Which one would you like to add?\n\n");
             printf("%d - %s (%s)\n", count, head->primaryTitle, head->startYear);
@@ -173,13 +168,23 @@ struct movie *searchTree(char *keyword, movie *root) {
                 printf("%d - %s (%s)\n", count, head->primaryTitle, head->startYear);
             }
             printf("\nType the corresponding number: ");
-            fgets(val, 200, stdin);
+            int tries = 0;
+            do {
+                if (fgets(val, 50, stdin) == NULL) {
+                    exit(1);
+                }
+                tries++;
+            } while (strchr(val, '\n') == NULL);
+            if (tries != 1) {
+                strcpy(val, "lolllll");
+            }
             int size = strlen(val);
             val[size-1] = '\0';
             choice = atoi(val);
             printf("------------------------------------------------------\n");
             if ((choice < 1) || (choice > count)) {
                 printf("Error: entered invalid number. No movie will be added.\n");
+                printf("------------------------------------------------------\n");
                 return NULL;
             }
             for (int k = 1; k < choice; k++) {
@@ -200,34 +205,16 @@ void freeTree(movie *root) {
     }
     freeTree(root->left);
     freeTree(root->right);
-
     if (root->listNext != NULL) {
         freeTree(root->listNext);
         root->listNext = NULL;
-        free(root->primaryTitle);
-        free(root->startYear);
-        free(root->runtimeMinutes);
-        free(root->genres);
-        free (root);
-        /*struct movie *temp;
-        while (root != NULL) {
-            temp = root;
-            root = root->listNext;
-            free(temp->primaryTitle);
-            free(temp->startYear);
-            free(temp->runtimeMinutes);
-            free(temp->genres);
-            free (temp);
-        }*/
 
     }
-    else {
-        free(root->primaryTitle);
-        free(root->startYear);
-        free(root->runtimeMinutes);
-        free(root->genres);
-        free (root);
-    }
+    free(root->primaryTitle);
+    free(root->startYear);
+    free(root->runtimeMinutes);
+    free(root->genres);
+    free (root);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -246,12 +233,21 @@ void addMovieToLog(movie *match, char *user) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//gets user inputted movie to search database with (case insensitive)
+//get user inputted movie to search database with (case insensitive)
 char *matchingTitle() {
-    char keyword[200];
+    char keyword[500];
     int j = 0;
     printf("What movie would you like to add to your catalog? (please type full title): ");
-    fgets(keyword, 200, stdin);
+    int tries = 0;
+    do {
+        if (fgets(keyword, 500, stdin) == NULL) {
+            exit(1);
+        }
+        tries++;
+    } while (strchr(keyword, '\n') == NULL);
+    if (tries != 1) {
+        strcpy(keyword, "kslfajslkdfsslkdfj");
+    }
     int size = strlen(keyword);
     keyword[size-1] = '\0';
     printf("------------------------------------------------------\n");
@@ -267,32 +263,59 @@ char *matchingTitle() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//user log
+//get username
 char *username() {
-    char buf[200];
-    int j = 0;
-    printf("What is your username?: ");
-    fgets(buf, 200, stdin);
-    int size = strlen(buf);
+    char buf[40];
+    char *user;
+    int j = 0, size = 0;
+    printf("What is your username? (must be less than 30 characters): ");
+    int tries = 0;
+    do {
+        if (fgets(buf, 32, stdin) == NULL) {
+            exit(1);
+        }
+        tries++;
+    } while (strchr(buf, '\n') == NULL);
+    if (tries != 1) {
+        printf("------------------------------------------------------\n");
+        printf("Error: username is too long. Please try again.\n");
+        printf("------------------------------------------------------\n");
+        strcpy(buf, "error");
+        size = strlen(buf);
+        user = malloc((size + 1) * sizeof(char));
+        strcpy(user, buf);
+        return user;
+    }
+    size = strlen(buf);
     buf[size-1] = '\0';
     strcat(buf, ".txt");
     while (buf[j]) {
         buf[j] = tolower(buf[j]);
         j++;
     }
-    size = strlen(buf);
-    char *user = malloc((size + 1) * sizeof(char));
-    strcpy(user, buf);
-    FILE *userCatalog = fopen(user, "r");
+    FILE *userCatalog = fopen(buf, "r");
     if (userCatalog == NULL) {
-        printf("\nThis username does not exist. I'll create it for you!\n");
-        userCatalog = fopen(user, "w");
+        userCatalog = fopen(buf, "w");
+        if (!userCatalog) {
+            printf("------------------------------------------------------\n");
+            printf("Error: invalid username (does not fit filename parameters). Please try again.\n");
+            printf("------------------------------------------------------\n");
+            strcpy(buf, "error");
+            size = strlen(buf);
+            user = malloc((size + 1) * sizeof(char));
+            strcpy(user, buf);
+            return user;
+        }
         fclose(userCatalog);
+        printf("\nThis username does not exist. I'll create it for you!\n");
         printf("\nEntering user catalog...\n");
     }
     else {
         printf("\nEntering user catalog...\n");
     }
+    size = strlen(buf);
+    user = malloc((size + 1) * sizeof(char));
+    strcpy(user, buf);
     return user;
 }
 
@@ -308,11 +331,24 @@ char *printMainMenu(char *menuItem) {
     printf("4 - Change users\n");
     printf("5 - Quit program\n\n");
     printf("Type the corresponding number: ");
-    fgets(menuItem, 200, stdin);
-    int size = strlen(menuItem);
-    menuItem[size-1] = '\0';
-    printf("------------------------------------------------------\n");
-    return menuItem;
+    int tries = 0;
+    do {
+        if (fgets(menuItem, 50, stdin) == NULL) {
+            exit(1);
+        }
+        tries++;
+    } while (strchr(menuItem, '\n') == NULL);
+    if (tries == 1) {
+        int size = strlen(menuItem);
+        menuItem[size-1] = '\0';
+        printf("------------------------------------------------------\n");
+        return menuItem;
+    }
+    else {
+        printf("------------------------------------------------------\n");
+        strcpy(menuItem, "lol");
+        return menuItem;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -372,11 +408,24 @@ char *printCatalogMenu(char *menuItem) {
     printf("4 - Go back to main menu\n");
     printf("5 - Quit program\n\n");
     printf("Type the corresponding number: ");
-    fgets(menuItem, 200, stdin);
-    int size = strlen(menuItem);
-    menuItem[size-1] = '\0';
-    printf("------------------------------------------------------\n");
-    return menuItem;
+    int tries = 0;
+    do {
+        if (fgets(menuItem, 50, stdin) == NULL) {
+            exit(1);
+        }
+        tries++;
+    } while (strchr(menuItem, '\n') == NULL);
+    if (tries == 1) {
+        int size = strlen(menuItem);
+        menuItem[size-1] = '\0';
+        printf("------------------------------------------------------\n");
+        return menuItem;
+    }
+    else {
+        printf("------------------------------------------------------\n");
+        strcpy(menuItem, "lol");
+        return menuItem;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -405,7 +454,11 @@ int catalogMenuOptions(char *menuItem, char *user) {
         printf("------------------------------------------------------\n");
         fclose(catalog);
         printf("Press the ENTER key to go back.\n");
-        fgets(buf, 1000, stdin);
+        do {
+            if (fgets(buf, 1000, stdin) == NULL) {
+                exit(1);
+            }
+        } while (strchr(buf, '\n') == NULL);
         printf("------------------------------------------------------\n");
         return 3;
     }
@@ -428,7 +481,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
         fseek(catalog, 0, SEEK_SET);
         printf("Which movie would you like to delete?\n\n");
         int movCounter = 0, lineCounter = 0, countCounter = 0, choice = 0;
-        char val[200];
+        char val[50];
         while (fgets(buf, 1000, catalog) != NULL) {
             if (lineCounter == countCounter) {
                 movCounter++;
@@ -438,7 +491,15 @@ int catalogMenuOptions(char *menuItem, char *user) {
             lineCounter++;
         }
         printf("\nType the corresponding number: ");
-        fgets(val, 200, stdin);
+        int tries = 0;
+        do {
+            if (fgets(val, 50, stdin) == NULL) {
+                exit(1);
+            }
+        } while (strchr(val, '\n') == NULL);
+        if (tries != 1) {
+            strcpy(val, "lolllll");
+        }
         printf("------------------------------------------------------\n");
         int size = strlen(val);
         val[size-1] = '\0';
@@ -454,7 +515,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
         choice--;
         lineCounter = 0;
         countCounter = choice * 4;
-        char lineStorage[250];
+        char lineStorage[1000];
         while (fgets(buf, 1000, catalog) != NULL) {
             if ((lineCounter < countCounter) || (lineCounter > (countCounter+3))) {
                 fprintf(temp, "%s", buf);
