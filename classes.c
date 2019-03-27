@@ -496,6 +496,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
             if (fgets(val, 50, stdin) == NULL) {
                 exit(1);
             }
+            tries++
         } while (strchr(val, '\n') == NULL);
         if (tries != 1) {
             strcpy(val, "lolllll");
