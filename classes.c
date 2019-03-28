@@ -221,11 +221,90 @@ void freeTree(movie *root) {
 
 //add movie to catalog file
 void addMovieToLog(movie *match, char *user) {
-    FILE *catalog = fopen(user, "a");
+    char buf[500], temp[500]; 
+    char mediaType[20], date[12];
+    int found = 0;
+    FILE *catalog = fopen(user, "r");
+    if (!catalog) {
+        printf("Error: could not open file.\n");
+        printf("------------------------------------------------------\n");
+        return;
+    }
+    sprintf(temp, "%s (%s)\n", match->primaryTitle, match->startYear);
+    while (fgets(buf, 500, catalog) != NULL) {
+        if (strcmp(buf, temp) == 0) {
+            found = 1;
+        }
+    }
+    if (found == 1) {
+        printf("This movie is already in your catalog. It will not be added again.\n");
+        printf("------------------------------------------------------\n");
+        fclose(catalog);
+        return;
+    }
+    fclose(catalog);
+    printf("What is the media type of this movie?\n\n");
+    printf("1 - DVD\n");
+    printf("2 - Blu-ray\n");
+    printf("3 - Digital\n\n");
+    printf("Type the corresponding number: ");
+    int tries = 0, choice = 0;
+    do {
+        if (fgets(mediaType, 20, stdin) == NULL) {
+            exit(1);
+        }
+        tries++;
+    } while (strchr(mediaType, '\n') == NULL);
+    int size = strlen(mediaType);
+    mediaType[size-1] = '\0';
+    choice = atoi(mediaType);
+    if ((tries != 1) || (choice < 1) || (choice > 3)) {
+        printf("------------------------------------------------------\n");
+        printf("Error: entered invalid number. Please try again.\n");
+        printf("------------------------------------------------------\n");
+        addMovieToLog(match, user);
+        return;
+    }
+    printf("------------------------------------------------------\n");
+    printf("Type the date added (MM/DD/YYYY): ");
+    tries = 0;
+    do {
+        if (fgets(date, 12, stdin) == NULL) {
+            exit(1);
+        }
+        tries++;
+    } while (strchr(date, '\n') == NULL);
+    char *p = strchr(date, '/');
+    if ((tries != 1) || (p == NULL)) {
+        printf("------------------------------------------------------\n");
+        printf("Error: entered invalid number. Please try again.\n");
+        printf("------------------------------------------------------\n");
+        addMovieToLog(match, user);
+        return;
+    }
+    size = strlen(date);
+    date[size-1] = '\0';
+    catalog = fopen(user, "a");
+    if (!catalog) {
+        printf("Error: could not open file.\n");
+        printf("------------------------------------------------------\n");
+        return;
+    }
     fprintf(catalog, "%s (%s)\n", match->primaryTitle, match->startYear);
     fprintf(catalog, "%s minutes\n", match->runtimeMinutes);
-    fprintf(catalog, "%s\n\n", match->genres);
+    fprintf(catalog, "%s\n", match->genres);
+    if (choice == 1) {
+        fprintf(catalog, "DVD\n");
+    }
+    else if (choice == 2) {
+        fprintf(catalog, "Blu-ray\n");
+    }
+    else {
+        fprintf(catalog, "Digital\n");
+    }
+    fprintf(catalog, "%s\n\n", date);
     fclose(catalog);
+    printf("------------------------------------------------------\n");
     printf("%s (%s) has been added to your catalog!\n", match->primaryTitle, match->startYear);
     printf("------------------------------------------------------\n");
     return;
@@ -294,7 +373,7 @@ char *username() {
         j++;
     }
     FILE *userCatalog = fopen(buf, "r");
-    if (userCatalog == NULL) {
+    if (!userCatalog) {
         userCatalog = fopen(buf, "w");
         if (!userCatalog) {
             printf("------------------------------------------------------\n");
@@ -362,6 +441,11 @@ int mainMenuOptions(char *menuItem, char *user) {
     }
     else if (strcmp(menuItem, "2") == 0) { //overwrite catalog
         FILE *catalog = fopen(user, "w");
+        if (!catalog) {
+            printf("Error: could not overwrite catalog\n");
+            printf("------------------------------------------------------\n");
+            return 5;
+        }
         fclose(catalog);
         printf("Catalog overwritten!\n");
         printf("\nOpening catalog menu...\n");
@@ -405,8 +489,9 @@ char *printCatalogMenu(char *menuItem) {
     printf("1 - List all movies in the catalog\n");
     printf("2 - Add movie to the catalog\n");
     printf("3 - Delete movie from the catalog\n");
-    printf("4 - Go back to main menu\n");
-    printf("5 - Quit program\n\n");
+    printf("4 - Update movie in the catalog\n");
+    printf("5 - Go back to main menu\n");
+    printf("6 - Quit program\n\n");
     printf("Type the corresponding number: ");
     int tries = 0;
     do {
@@ -436,7 +521,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
     char buf[1000];
     if (strcmp(menuItem, "1") == 0) { //list movies
         catalog = fopen(user, "r");
-        if (catalog == NULL) {
+        if (!catalog) {
             printf("Error: could not open catalog.\n");
             return 5;
         }
@@ -467,7 +552,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
     }
     else if (strcmp(menuItem, "3") == 0) { //delete movie
         catalog = fopen(user, "r");
-        if (catalog == NULL) {
+        if (!catalog) {
             printf("Error: could not open catalog.\n");
             return 5;
         }
@@ -485,7 +570,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
         while (fgets(buf, 1000, catalog) != NULL) {
             if (lineCounter == countCounter) {
                 movCounter++;
-                countCounter = countCounter + 4;
+                countCounter = countCounter + 6;
                 printf("%d - %s", movCounter, buf);
             }
             lineCounter++;
@@ -513,12 +598,17 @@ int catalogMenuOptions(char *menuItem, char *user) {
         }
         fseek(catalog, 0, SEEK_SET);
         FILE *temp = fopen("temp.txt", "w");
+        if (!temp) {
+            printf("Error: could not move files.\n");
+            printf("------------------------------------------------------\n");
+            return 5;
+        }
         choice--;
         lineCounter = 0;
-        countCounter = choice * 4;
+        countCounter = choice * 6;
         char lineStorage[1000];
         while (fgets(buf, 1000, catalog) != NULL) {
-            if ((lineCounter < countCounter) || (lineCounter > (countCounter+3))) {
+            if ((lineCounter < countCounter) || (lineCounter > (countCounter+5))) {
                 fprintf(temp, "%s", buf);
             }
             if (lineCounter == countCounter) {
@@ -540,11 +630,14 @@ int catalogMenuOptions(char *menuItem, char *user) {
         printf("------------------------------------------------------\n");
         return 3;
     }
-    else if (strcmp(menuItem, "4") == 0) { //go to main menu
+    else if (strcmp(menuItem, "4") == 0) { //update movie
+        
+    }
+    else if (strcmp(menuItem, "5") == 0) { //go to main menu
         printf("Going back...\n");
         return 2;
     }
-    else if (strcmp(menuItem, "5") == 0) { //quit program
+    else if (strcmp(menuItem, "6") == 0) { //quit program
         printf("Goodbye! Your catalog(s) will be saved for future reference.\n");
         printf("------------------------------------------------------\n");
         return 5;
