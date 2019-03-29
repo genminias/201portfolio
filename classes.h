@@ -9,6 +9,7 @@
 #define MOVIE_NODE
 typedef struct movie {
     char *primaryTitle;
+    char *nonArticleTitle;
     char *startYear; //can be /N
     char *runtimeMinutes; //can be /N
     char *genres; //can be /N
@@ -25,6 +26,7 @@ void insert(movie *root, movie *newMovie);
 struct movie *searchTree(char *keyword, movie *root);
 void freeTree(movie *root);
 
+int validDate(int mm, int dd, int yy);
 void addMovieToLog(movie *match, char *user);
 char *matchingTitle();
 char *username();

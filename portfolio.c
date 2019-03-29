@@ -12,6 +12,7 @@ https://www.programiz.com/c-programming/c-file-input-output - helped with file s
 https://codeforwin.org/2018/02/c-program-remove-word-from-file.html - helped with removing an entry from catalog
 https://www.techonthenet.com/c_language/standard_library_functions/ctype_h/toupper.php - helped with conversion to uppercase
 https://stackoverflow.com/questions/1484817/how-do-i-make-a-simple-makefile-for-gcc-on-linux - helped with creating a makefile
+https://codereview.stackexchange.com/questions/104685/program-that-tells-if-a-date-is-valid-in-c - helped with date validation
 plus many many more (for smaller syntax things)! thanks stackoverflow :)
 */
 
