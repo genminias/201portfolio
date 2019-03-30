@@ -437,7 +437,8 @@ char *matchingTitle() {
     char *temp, *art;
     char keyword[500], titleTemp[500];
     int j = 0;
-    printf("What movie would you like to add to your catalog?: ");
+    printf("What movie would you like to add to your catalog?\n");
+    printf("Enter a movie or keyword: ");
     int tries = 0;
     do {
         fgets(keyword, 500, stdin);
