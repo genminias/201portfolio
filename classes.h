@@ -21,8 +21,12 @@ typedef struct movie {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+extern int movieCount;
+extern struct movie **array;
+
 struct movie *loadDataset(int *movLength);
 void insert(movie *root, movie *newMovie);
+void preorder(movie *temp, char *keyword);
 struct movie *searchTree(char *keyword, movie *root);
 void freeTree(movie *root);
 

@@ -150,17 +150,116 @@ void insert(movie *root, movie *newMovie) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+int movieCount;
+struct movie **array;
+//traverses subtree of first found node from keyword
+void preorder(movie *temp, char *keyword) {
+    if (temp == NULL) {
+        return;
+    }
+    char caseTitle[500];
+    int j = 0;
+    strcpy(caseTitle, temp->nonArticleTitle);
+    while (caseTitle[j]) {
+        caseTitle[j] = toupper(caseTitle[j]);
+        j++;
+    }
+    int length = strlen(keyword);
+    int length2 = strlen(caseTitle);
+    if (length > length2) {
+        length = length2;
+    }
+    int found = 0;
+    for (int i = 0; i < length; i++) {
+        if (caseTitle[i] == keyword[i]) {
+            found++;
+        }
+    }
+    preorder(temp->left, keyword);
+    if (movieCount == 50) {
+        return;
+    }
+    if ((found == length) && (strstr(caseTitle, keyword) != NULL)) {
+        array[movieCount] = temp;
+        movieCount++;
+        printf("%d - %s (%s)\n", movieCount, temp->primaryTitle, temp->startYear);
+        if (temp->listNext != NULL) {
+            struct movie *head = temp;
+            while ((head->listNext != NULL) && (movieCount < 50)) {
+                head = head->listNext;
+                array[movieCount] = head;
+                movieCount++;
+                printf("%d - %s (%s)\n", movieCount, head->primaryTitle, head->startYear);
+            }
+        }
+    }
+    preorder(temp->right, keyword);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
 //search tree for given movie
 struct movie *searchTree(char *keyword, movie *root) {
     struct movie *cursor = root;
-    char caseTitle[500]; //make traversal case insensitive
+    char caseTitle[500], val[50]; //make traversal case insensitive
     int j = 0;
+    movieCount = 0;
     strcpy(caseTitle, cursor->nonArticleTitle);
     while (caseTitle[j]) {
         caseTitle[j] = toupper(caseTitle[j]);
         j++;
     }
-    if (strcmp(keyword, caseTitle) < 0) { //traverse left tree
+    int length = strlen(keyword);
+    int length2 = strlen(caseTitle);
+    if (length > length2) {
+        length = length2;
+    }
+    int found = 0;
+    for (int i = 0; i < length; i++) {
+        if (caseTitle[i] == keyword[i]) {
+            found++;
+        }
+    }
+    if (found == length) { //keyword found
+        struct movie *temp = cursor;
+        array = malloc(100 * sizeof(movie *));
+        printf("Which movie would you like to add?\n\n");
+        preorder(temp, keyword);
+        if (movieCount >= 50) {
+            printf("\nMax amount of movies shown.\n");
+            printf("If you don't see the one you're looking for, then press\n");
+            printf("the ENTER key to go back and try using more words in your search.\n");
+            printf("\nType the corresponding number (or ENTER): ");
+        }
+        else {
+            printf("\nType the corresponding number: ");
+        }
+        int tries = 0;
+        do {
+            fgets(val, 50, stdin);
+            tries++;
+        } while (strchr(val, '\n') == NULL);
+        if (tries != 1) {
+            strcpy(val, "lolllll");
+        }
+        if ((val[0] == '\n') && (movieCount >= 50)) {
+            printf("------------------------------------------------------\n");
+            printf("No movie will be added.\n");
+            printf("------------------------------------------------------\n");
+            return NULL;
+        }
+        length = strlen(val);
+        val[length-1] = '\0';
+        int choice = atoi(val);
+        printf("------------------------------------------------------\n");
+        if ((choice < 1) || (choice > movieCount)) {
+            printf("Error: entered invalid number. No movie will be added.\n");
+            printf("------------------------------------------------------\n");
+            return NULL;
+        }
+        return array[choice-1];
+    }
+    else if (strcmp(keyword, caseTitle) < 0) { //traverse left tree
         if (cursor->left != NULL) {
             return searchTree(keyword, cursor->left);
         }
@@ -180,42 +279,6 @@ struct movie *searchTree(char *keyword, movie *root) {
             return NULL;
         }
     }
-    else { //found match
-        if (cursor->listNext != NULL) { //if duplicate titles, list all and choose
-            int count = 1, choice = 0;
-            char val[50];
-            struct movie *head = cursor;
-            printf("There are multiple movies with this title. Which one would you like to add?\n\n");
-            printf("%d - %s (%s)\n", count, head->primaryTitle, head->startYear);
-            while (head->listNext != NULL) {
-                count++;
-                head = head->listNext;
-                printf("%d - %s (%s)\n", count, head->primaryTitle, head->startYear);
-            }
-            printf("\nType the corresponding number: ");
-            int tries = 0;
-            do {
-                fgets(val, 50, stdin);
-                tries++;
-            } while (strchr(val, '\n') == NULL);
-            if ((tries != 1) || (val[0] == '\n')) {
-                strcpy(val, "lolllll");
-            }
-            int size = strlen(val);
-            val[size-1] = '\0';
-            choice = atoi(val);
-            printf("------------------------------------------------------\n");
-            if ((choice < 1) || (choice > count)) {
-                printf("Error: entered invalid number. No movie will be added.\n");
-                printf("------------------------------------------------------\n");
-                return NULL;
-            }
-            for (int k = 1; k < choice; k++) {
-                cursor = cursor->listNext;
-            }
-        }
-        return cursor;
-    }
     return NULL;
 }
 
@@ -234,6 +297,7 @@ void freeTree(movie *root) {
 
     }
     free(root->primaryTitle);
+    free(root->nonArticleTitle);
     free(root->startYear);
     free(root->runtimeMinutes);
     free(root->genres);
@@ -311,7 +375,7 @@ void addMovieToLog(movie *match, char *user) {
         return;
     }
     printf("------------------------------------------------------\n");
-    printf("Type the date added (MM/DD/YY): ");
+    printf("Type the date added (MM/DD/YYYY): ");
     tries = 0;
     do {
         fgets(date, 15, stdin);
@@ -362,6 +426,7 @@ void addMovieToLog(movie *match, char *user) {
     printf("------------------------------------------------------\n");
     printf("%s (%s) has been added to your catalog!\n", match->primaryTitle, match->startYear);
     printf("------------------------------------------------------\n");
+    free(array);
     return;
 }
 
@@ -372,7 +437,7 @@ char *matchingTitle() {
     char *temp, *art;
     char keyword[500], titleTemp[500];
     int j = 0;
-    printf("What movie would you like to add to your catalog?: "); //segfaults if just enter key is pressed
+    printf("What movie would you like to add to your catalog?: ");
     int tries = 0;
     do {
         fgets(keyword, 500, stdin);
@@ -764,7 +829,7 @@ int catalogMenuOptions(char *menuItem, char *user) {
             return 3;
         }
         printf("------------------------------------------------------\n");
-        printf("Type the new date added (MM/DD/YY): ");
+        printf("Type the new date added (MM/DD/YYYY): ");
         int mm = 0, dd = 0, yy = 0, count = 0;
         tries = 0;
         do {
