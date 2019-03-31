@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "classes.h"
+#include "functions.h"
 
 /*
 SOURCES USED:
