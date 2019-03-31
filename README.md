@@ -4,8 +4,9 @@ HELLO :) welcome to my IMDB movie database project.
 
 Tutorial video: https://youtu.be/IX3wbcz7SQ8
 
+
 WHAT THIS IS:
-This program reads in the movies from the basics IMDB dataset. You are then allowed to create or use an existing catalog to add movies to, delete movies from, and update movies in your catalog. These catalogs are also saved for future reference, so that you can still access them after you have restarted the program.
+- This program reads in the movies from the basics IMDB dataset. You are then allowed to create or use an existing catalog to add movies to, delete movies from, and update movies in your catalog. These catalogs are also saved for future reference, so that you can still access them after you have restarted the program.
 
 WHAT TO DOWNLOAD:
 1) My repository, which includes this README.md file, portfolio.c, functions.c, functions.h, and a makefile.
@@ -28,5 +29,6 @@ KEY NOTES:
 - You are not be able to add movies that do not exist in the IMDB movie dataset.
 - When adding or updating a movie, you will be prompted to change the media type of the movie and the date the movie was added to your catalog. You must enter a valid date or the program will prompt you to re-enter one.
 - Some years, runtime minutes, and genres in the IMDB dataset show up as '/N' for some movies. This means that the year, runtime minutes, or genres are unknown for a corresponding movie.
+
 
 Have fun! If you are still confused about some things, try watching the video tutorial. The link is shown above.
